@@ -58,6 +58,9 @@ pw_edit() {
     new=true tmpfile=$tmpdir/pa.$(rand_chars 10 'A-Za-z0-9') ||
         die "couldn't generate random characters"
 
+    (: >"$tmpfile") 2>/dev/null ||
+        die "couldn't create a shared memory filename"
+
     trap 'rm -f "$tmpfile"' EXIT
 
     [ -f "$name.age" ] && new=false &&
@@ -338,6 +341,10 @@ main() {
 # Ensure that debug mode is never enabled to
 # prevent the password from leaking.
 set +x
+
+# Prevent accidentally writing to existing
+# files to avoid TOCTOU vulnerabilities.
+set -C
 
 # Restrict permissions of any new files to
 # only the current user.
